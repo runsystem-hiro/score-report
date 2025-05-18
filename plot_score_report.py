@@ -9,10 +9,11 @@ import sys
 from datetime import timedelta
 import math
 
-def compute_smart_ylim(min_val, max_val, 
-                       lower_margin_ratio=1.5, 
-                       upper_margin_ratio=0.2, 
-                       ymin_limit=None, 
+
+def compute_smart_ylim(min_val, max_val,
+                       lower_margin_ratio=1.5,
+                       upper_margin_ratio=0.2,
+                       ymin_limit=None,
                        ymax_limit=None):
     """
     グラフのY軸範囲を自動的に決定するユーティリティ関数。
@@ -38,6 +39,7 @@ def compute_smart_ylim(min_val, max_val,
 
     return math.floor(ymin), math.ceil(ymax)
 
+
 # フォントファイルのパスと存在確認
 font_path = "/workspace/fonts/BIZUDGothic-Regular.ttf"
 try:
@@ -46,7 +48,8 @@ try:
         print("システムにインストールされている日本語フォントを探します...")
         # 代替フォントを探す
         import matplotlib.font_manager as fm
-        fonts = [f.name for f in fm.fontManager.ttflist if 'gothic' in f.name.lower() or 'meiryo' in f.name.lower() or 'yu' in f.name.lower()]
+        fonts = [f.name for f in fm.fontManager.ttflist if 'gothic' in f.name.lower(
+        ) or 'meiryo' in f.name.lower() or 'yu' in f.name.lower()]
         if fonts:
             print(f"利用可能な日本語フォント: {', '.join(fonts[:5])}")
             font_prop = FontProperties(family=fonts[0])
@@ -66,38 +69,41 @@ plt.rcParams['pdf.fonttype'] = 42
 plt.rcParams['ps.fonttype'] = 42
 
 # 全てのテキスト要素に日本語フォントを適用する関数
+
+
 def set_font_for_all_texts(fig):
     for ax in fig.get_axes():
         texts = ax.get_xticklabels() + ax.get_yticklabels()
         for text in texts:
             text.set_fontproperties(font_prop)
-        
+
         # タイトルにもフォント設定
         title = ax.get_title()
         if title:
             ax.set_title(title, fontproperties=font_prop)
-        
+
         # 軸ラベルにもフォント設定
         xlabel = ax.get_xlabel()
         if xlabel:
             ax.set_xlabel(xlabel, fontproperties=font_prop)
-        
+
         ylabel = ax.get_ylabel()
         if ylabel:
             ax.set_ylabel(ylabel, fontproperties=font_prop)
-        
+
         # 凡例にもフォント設定
         legend = ax.get_legend()
         if legend:
             for text in legend.get_texts():
                 text.set_fontproperties(font_prop)
 
+
 # CSVファイル読み込みエラーハンドリング
 try:
     df = pd.read_csv('score_report_final.csv')
     df['date'] = pd.to_datetime(df['date'])
 except FileNotFoundError:
-    print("[エラー] CSVファイルが見つかりません: resources/score_report_final.csv")
+    print("[エラー] CSVファイルが見つかりません: score_report_final.csv")
     sys.exit(1)
 except Exception as e:
     print(f"[エラー] データ読み込み中にエラーが発生しました: {e}")
@@ -108,8 +114,11 @@ df['cumulative_study_hours'] = df['study_hours'].cumsum()
 df['cumulative_correct'] = df['correct_answers'].cumsum()
 
 # 日付フォーマットの調整（2025年を省略）
+
+
 def format_date_without_year(date):
     return date.strftime('%m-%d')
+
 
 # x軸ラベルを整形
 date_labels = [format_date_without_year(d) for d in df['date']]
@@ -127,9 +136,11 @@ sub_colors = ['#e74c3c', '#2ecc71', '#f39c12']
 
 # 1. 全体正解率の推移
 ax1 = fig.add_subplot(gs[0, 0])
-ax1.plot(df['date'], df['accuracy_per'], marker='o', markersize=8, color=main_color, linewidth=2.5)
+ax1.plot(df['date'], df['accuracy_per'], marker='o',
+         markersize=8, color=main_color, linewidth=2.5)
 
-ax1.set_title('全体正解率の推移', fontsize=14, fontweight='bold', pad=15, fontproperties=font_prop)
+ax1.set_title('全体正解率の推移', fontsize=14, fontweight='bold',
+              pad=15, fontproperties=font_prop)
 ax1.set_ylabel('正解率 (%)', fontsize=12, fontproperties=font_prop)
 ax1.set_ylim(0, 100)
 ax1.grid(True, alpha=0.3)
@@ -140,41 +151,49 @@ ax1.set_xticklabels(date_labels)
 
 # データポイントの注釈位置を調整
 for x, y, label in zip(df['date'], df['accuracy_per'], df['accuracy_per']):
-    ax1.annotate(f'{label}%', (x, y), textcoords="offset points", xytext=(0, 10), 
+    ax1.annotate(f'{label}%', (x, y), textcoords="offset points", xytext=(0, 10),
                  ha='center', fontsize=11, fontweight='bold', fontproperties=font_prop)
 
 # 目標ラインを追加
 ax1.axhline(y=70, color='red', linestyle='--', alpha=0.7)
-ax1.text(df['date'].iloc[0], 72, '目標: 70%', color='red', fontweight='bold', fontsize=12, fontproperties=font_prop)
+ax1.text(df['date'].iloc[0], 72, '目標: 70%', color='red',
+         fontweight='bold', fontsize=12, fontproperties=font_prop)
 
 # 2. 成績分布（レーダーチャート）
 ax2 = fig.add_subplot(gs[0, 1], polar=True)
 categories = ['ストラテジ系', 'マネジメント系', 'テクノロジ系']
 N = len(categories)
-latest_values = df.iloc[-1][['strategy_per', 'management_per', 'technology_per']].values
-previous_values = df.iloc[-2][['strategy_per', 'management_per', 'technology_per']].values
+latest_values = df.iloc[-1][['strategy_per',
+                             'management_per', 'technology_per']].to_numpy()
+previous_values = df.iloc[-2][['strategy_per',
+                               'management_per', 'technology_per']].to_numpy()
 angles = [n / float(N) * 2 * np.pi for n in range(N)]
 angles += angles[:1]
-latest_values = np.concatenate((latest_values, [latest_values[0]]))
-previous_values = np.concatenate((previous_values, [previous_values[0]]))
-ax2.plot(angles, latest_values, 'o-', linewidth=2, label='現在', color=main_color)
+latest_values = np.concatenate([latest_values, [latest_values[0]]])
+previous_values = np.concatenate([previous_values, [previous_values[0]]])
+ax2.plot(angles, latest_values, 'o-', linewidth=2,
+         label='現在', color=main_color)
 ax2.fill(angles, latest_values, alpha=0.25, color=main_color)
-ax2.plot(angles, previous_values, 'o-', linewidth=2, label='前回', color='#e74c3c', alpha=0.7)
+ax2.plot(angles, previous_values, 'o-', linewidth=2,
+         label='前回', color='#e74c3c', alpha=0.7)
 ax2.fill(angles, previous_values, alpha=0.1, color='#e74c3c')
 ax2.set_xticks(angles[:-1])
 ax2.set_xticklabels(categories, fontsize=12, fontproperties=font_prop)
 ax2.set_yticks([20, 40, 60, 80, 100])
 ax2.set_yticklabels(['20%', '40%', '60%', '80%', '100%'], fontsize=10)
 ax2.set_ylim(0, 100)
-ax2.set_title('分野別成績分布', fontsize=14, fontweight='bold', pad=15, fontproperties=font_prop)
-ax2.legend(loc='upper right', bbox_to_anchor=(1.1, 1.05), fontsize=11, prop=font_prop)
+ax2.set_title('分野別成績分布', fontsize=14, fontweight='bold',
+              pad=15, fontproperties=font_prop)
+ax2.legend(loc='upper right', bbox_to_anchor=(
+    1.1, 1.05), fontsize=11, prop=font_prop)
 
 # 3. 各カテゴリの改善度
 ax3 = fig.add_subplot(gs[1, :])
 category_names = ['ストラテジ系', 'マネジメント系', 'テクノロジ系']
 improvements = latest_values[:-1] - previous_values[:-1]
 colors = ['#e74c3c' if imp < 0 else '#2ecc71' for imp in improvements]
-bars = ax3.bar(np.arange(len(category_names)), improvements, color=colors, alpha=0.7)
+bars = ax3.bar(np.arange(len(category_names)),
+               improvements, color=colors, alpha=0.7)
 
 # 高さを調整（非対称に）
 min_val = improvements.min()
@@ -187,7 +206,8 @@ ymin, ymax = compute_smart_ylim(min_val, max_val, ymin_limit=-5)
 
 ax3.set_ylim(ymin, ymax)
 
-ax3.set_title('各分野の改善度', fontsize=14, fontweight='bold', pad=25, fontproperties=font_prop)
+ax3.set_title('各分野の改善度', fontsize=14, fontweight='bold',
+              pad=25, fontproperties=font_prop)
 ax3.set_xticks(np.arange(len(category_names)))
 ax3.set_xticklabels(category_names, fontsize=12, fontproperties=font_prop)
 ax3.set_ylabel('変化量 (ポイント)', fontsize=12, fontproperties=font_prop)
@@ -213,10 +233,14 @@ for i, bar in enumerate(bars):
 
 # 4. 分野別学習進捗の推移
 ax4 = fig.add_subplot(gs[2, 0])
-ax4.plot(df['date'], df['strategy_progress'], label='ストラテジ系', marker='o', color=sub_colors[0], markersize=6)
-ax4.plot(df['date'], df['management_progress'], label='マネジメント系', marker='o', color=sub_colors[1], markersize=6)
-ax4.plot(df['date'], df['technology_progress'], label='テクノロジ系', marker='o', color=sub_colors[2], markersize=6)
-ax4.set_title('分野別学習進捗の推移', fontsize=14, fontweight='bold', pad=15, fontproperties=font_prop)
+ax4.plot(df['date'], df['strategy_progress'], label='ストラテジ系',
+         marker='o', color=sub_colors[0], markersize=6)
+ax4.plot(df['date'], df['management_progress'], label='マネジメント系',
+         marker='o', color=sub_colors[1], markersize=6)
+ax4.plot(df['date'], df['technology_progress'], label='テクノロジ系',
+         marker='o', color=sub_colors[2], markersize=6)
+ax4.set_title('分野別学習進捗の推移', fontsize=14, fontweight='bold',
+              pad=15, fontproperties=font_prop)
 ax4.set_ylabel('進捗率 (%)', fontsize=12, fontproperties=font_prop)
 ax4.set_ylim(0, 100)
 ax4.legend(loc='lower right', fontsize=11, prop=font_prop)
@@ -230,7 +254,8 @@ ax4.set_xticklabels(date_labels)
 ax5 = fig.add_subplot(gs[2, 1])
 # 棒グラフの幅を広げるために、0.6の値を使用（デフォルトは0.8）
 ax5.bar(df['date'], df['study_hours'], color=main_color, alpha=0.7, width=5.0)
-ax5.set_title('自己学習時間の推移', fontsize=14, fontweight='bold', pad=15, fontproperties=font_prop)
+ax5.set_title('自己学習時間の推移', fontsize=14, fontweight='bold',
+              pad=15, fontproperties=font_prop)
 ax5.set_ylabel('学習時間（時間）', fontsize=12, fontproperties=font_prop)
 
 # x軸のラベル設定改善
@@ -243,28 +268,33 @@ ax5.grid(True, axis='y', alpha=0.3)
 # 学習時間に値を表示
 for i, v in enumerate(df['study_hours']):
     offset = v * 0.07
-    ax5.text(df['date'].iloc[i], v - offset, f'{v:.1f}', ha='center', va='top', fontsize=11, fontweight='bold', fontproperties=font_prop)
+    ax5.text(df['date'].iloc[i], v - offset, f'{v:.1f}', ha='center',
+             va='top', fontsize=11, fontweight='bold', fontproperties=font_prop)
 
 # 6. 累積正解数と累積学習時間（二軸グラフ）
 ax6 = fig.add_subplot(gs[3, 0])
 color1 = '#3498db'
 color2 = '#e74c3c'
 
-line1 = ax6.plot(df['date'], df['cumulative_correct'], marker='o', color=color1, linewidth=2, label='累積正解数', markersize=6)
+line1 = ax6.plot(df['date'], df['cumulative_correct'], marker='o',
+                 color=color1, linewidth=2, label='累積正解数', markersize=6)
 ax6.set_ylabel('累積正解数', color=color1, fontsize=12, fontproperties=font_prop)
 ax6.tick_params(axis='y', labelcolor=color1)
 
 ax6_2 = ax6.twinx()
-line2 = ax6_2.plot(df['date'], df['cumulative_study_hours'], marker='s', color=color2, linewidth=2, label='累積学習時間', markersize=6)
-ax6_2.set_ylabel('累積学習時間 (時間)', color=color2, fontsize=12, fontproperties=font_prop)
+line2 = ax6_2.plot(df['date'], df['cumulative_study_hours'], marker='s',
+                   color=color2, linewidth=2, label='累積学習時間', markersize=6)
+ax6_2.set_ylabel('累積学習時間 (時間)', color=color2,
+                 fontsize=12, fontproperties=font_prop)
 ax6_2.tick_params(axis='y', labelcolor=color2)
 
 # 凡例を結合
 lines = line1 + line2
-labels = [l.get_label() for l in lines]
+labels = [str(l.get_label()) for l in lines]
 ax6.legend(lines, labels, loc='upper left', fontsize=11, prop=font_prop)
 
-ax6.set_title('累積正解数と累積学習時間', fontsize=14, fontweight='bold', pad=15, fontproperties=font_prop)
+ax6.set_title('累積正解数と累積学習時間', fontsize=14, fontweight='bold',
+              pad=15, fontproperties=font_prop)
 ax6.grid(True, alpha=0.3)
 
 # x軸のラベル設定改善
@@ -278,11 +308,13 @@ ax7 = fig.add_subplot(gs[3, 1])
 df['efficiency'] = 0.0  # 初期化
 for i in range(len(df)):
     if df.iloc[i]['study_hours'] > 0:
-        df.at[i, 'efficiency'] = df.iloc[i]['correct_answers'] / df.iloc[i]['study_hours']
+        df.at[i, 'efficiency'] = df.iloc[i]['correct_answers'] / \
+            df.iloc[i]['study_hours']
 
 # 棒グラフの幅を広げるために、0.4の値を使用
 ax7.bar(df['date'], df['efficiency'], color='#2ecc71', alpha=0.7, width=5.0)
-ax7.set_title('学習効率（正解数/学習時間）', fontsize=14, fontweight='bold', pad=15, fontproperties=font_prop)
+ax7.set_title('学習効率（正解数/学習時間）', fontsize=14, fontweight='bold',
+              pad=15, fontproperties=font_prop)
 ax7.set_ylabel('効率（正解/時間）', fontsize=12, fontproperties=font_prop)
 
 # x軸のラベル設定改善
@@ -295,11 +327,13 @@ ax7.grid(True, axis='y', alpha=0.3)
 for i, v in enumerate(df['efficiency']):
     if not np.isnan(v) and v > 0:
         offset = v * 0.07
-        ax7.text(df['date'].iloc[i], v - offset, f'{v:.1f}', ha='center', va='top', fontsize=11, fontweight='bold', fontproperties=font_prop)
+        ax7.text(df['date'].iloc[i], v - offset, f'{v:.1f}', ha='center',
+                 va='top', fontsize=11, fontweight='bold', fontproperties=font_prop)
 
 # 8. KPIゲージ（目標70%に対する達成度） - 12時から時計回りに変更
 ax8 = fig.add_subplot(gs[4, 0], aspect='equal')
-ax8.set_title('KPI正答率達成度（目標正答率:70%）', fontsize=14, fontweight='bold', pad=15, fontproperties=font_prop)
+ax8.set_title('KPI正答率達成度（目標正答率:70%）', fontsize=14,
+              fontweight='bold', pad=15, fontproperties=font_prop)
 
 # --- 設定値 ---
 target = 70.0
@@ -330,12 +364,14 @@ start_angle = 90
 end_angle = (start_angle - gauge_angle) % 360  # 時計回り表現（反時計回り描画を逆手に）
 
 # --- ゲージ本体（オレンジなど） ---
-wedge_inner = Wedge((0.5, 0.5), 0.4, end_angle, start_angle, width=0.1, facecolor=gauge_color, edgecolor='none')
+wedge_inner = Wedge((0.5, 0.5), 0.4, end_angle, start_angle,
+                    width=0.1, facecolor=gauge_color, edgecolor='none')
 ax8.add_patch(wedge_inner)
 
 # --- 背景（灰色：未達成分） ---
 if gauge_angle < 360:
-    wedge_outer = Wedge((0.5, 0.5), 0.4, start_angle, end_angle, width=0.1, facecolor='lightgray', edgecolor='none')
+    wedge_outer = Wedge((0.5, 0.5), 0.4, start_angle, end_angle,
+                        width=0.1, facecolor='lightgray', edgecolor='none')
     ax8.add_patch(wedge_outer)
 
 # --- テキスト表示 ---
@@ -350,14 +386,17 @@ ax8.axis('off')
 # 9. 分野別改善ニーズ（弱点分析）
 ax9 = fig.add_subplot(gs[4, 1])
 categories = ['ストラテジ系', 'マネジメント系', 'テクノロジ系']
-latest_values = df.iloc[-1][['strategy_per', 'management_per', 'technology_per']].values
+latest_values = df.iloc[-1][['strategy_per',
+                             'management_per', 'technology_per']].values
 target_gap = [max(target - val, 0) for val in latest_values]  # 目標との差分
 
 # 改善ニーズの強さで色を変える
-colors = ['#e74c3c' if gap > 30 else ('#f39c12' if gap > 15 else '#2ecc71') for gap in target_gap]
+colors = ['#e74c3c' if gap > 30 else (
+    '#f39c12' if gap > 15 else '#2ecc71') for gap in target_gap]
 
 bars = ax9.bar(categories, target_gap, color=colors, alpha=0.7)
-ax9.set_title('分野別改善ニーズ（目標70%との差）', fontsize=14, fontweight='bold', pad=15, fontproperties=font_prop)
+ax9.set_title('分野別改善ニーズ（目標70%との差）', fontsize=14,
+              fontweight='bold', pad=15, fontproperties=font_prop)
 ax9.set_ylabel('改善ニーズ（ポイント）', fontsize=12, fontproperties=font_prop)
 ax9.grid(True, axis='y', alpha=0.3)
 
@@ -367,8 +406,8 @@ for i, bar in enumerate(bars):
     if height > 0:
         offset = height * 0.07
         ax9.text(bar.get_x() + bar.get_width()/2., height - offset,
-                f'{height:.1f}', ha='center', va='top', fontsize=11, 
-                fontweight='bold', fontproperties=font_prop)
+                 f'{height:.1f}', ha='center', va='top', fontsize=11,
+                 fontweight='bold', fontproperties=font_prop)
 
 # 10. 総合成績のサマリー
 ax10 = fig.add_subplot(gs[5, :])
@@ -377,13 +416,14 @@ headers = ['報告日', '問題数', '正解数', '正解率', '評価']
 table_data = [headers]
 for i in range(len(df)):
     # row = [format_date_without_year(df.iloc[i]['date']),
-    row = [df.iloc[i]['date'].strftime('%Y-%m-%d'),           
+    row = [df.iloc[i]['date'].strftime('%Y-%m-%d'),
            f"{int(df.iloc[i]['total_questions'])}",
            f"{int(df.iloc[i]['correct_answers'])}",
            f"{df.iloc[i]['accuracy_per']}%",
            f"{df.iloc[i]['grade']}"]
     table_data.append(row)
-table = ax10.table(cellText=table_data, loc='center', cellLoc='center', colWidths=[0.2]*5)
+table = ax10.table(cellText=table_data, loc='center',
+                   cellLoc='center', colWidths=[0.2]*5)
 table.auto_set_font_size(False)
 table.set_fontsize(12)
 table.scale(1, 1.8)  # テーブルの高さを調整
@@ -407,7 +447,8 @@ if df.iloc[-1]['accuracy_per'] > df.iloc[-2]['accuracy_per']:
         table[(len(df), i)].set_facecolor('#e8f4f8')
 
 # 全体タイトルと改善メッセージ
-fig.suptitle("試験成績レポート", fontsize=18, fontweight='bold', y=0.965, fontproperties=font_prop)
+fig.suptitle("試験成績レポート", fontsize=18, fontweight='bold',
+             y=0.965, fontproperties=font_prop)
 
 # 前回との比較メッセージ
 overall_improvement = df.iloc[-1]['accuracy_per'] - df.iloc[-2]['accuracy_per']
@@ -417,10 +458,11 @@ fig.text(0.5, 0.08, improvement_message, ha='center', fontsize=14, fontweight='b
          color='#2ecc71' if overall_improvement > 0 else '#e74c3c', fontproperties=font_prop)
 
 # 今後の勉強アドバイス
-weakest_area_idx = np.argmin(latest_values)
+weakest_area_idx = np.argmin(np.array(latest_values))
 weakest_area = categories[weakest_area_idx]
 advice = f"アドバイス: {weakest_area}の学習強化が最も効果的です。"
-fig.text(0.5, 0.06, advice, ha='center', fontsize=13, fontweight='bold', color='#3498db', fontproperties=font_prop)
+fig.text(0.5, 0.06, advice, ha='center', fontsize=13,
+         fontweight='bold', color='#3498db', fontproperties=font_prop)
 
 # 日数あたりの学習時間計算
 # 前回と今回の学習期間を日数で計算
@@ -429,13 +471,13 @@ if len(df) >= 2:
     previous_date = df.iloc[-2]['date']
     # timedelta.days + 1 で期間の日数を正確に計算（前後の日付を含まない）
     days_between = (latest_date - previous_date).days - 1
-    
+
     latest_study_hours = df.iloc[-1]['study_hours']
     daily_study_minutes = (latest_study_hours * 60) / days_between
-    
+
     # 目標: 1日あたり1.5時間 = 90分
     daily_target_minutes = 90
-    
+
     # 1日あたりの学習時間メッセージ
     if daily_study_minutes < daily_target_minutes:
         time_status = "不足しています"
@@ -443,21 +485,22 @@ if len(df) >= 2:
     else:
         time_status = "良好です"
         color = '#2ecc71'  # 緑色（良好）
-    
+
     target_ratio = (daily_study_minutes / daily_target_minutes) * 100
     study_time_msg = f"1日あたりの学習時間: {daily_study_minutes:.1f}分 ({latest_study_hours:.1f}時間÷{days_between}日間) - 目標比:{target_ratio:.1f}% {time_status}"
 else:
     study_time_msg = "学習データが不足しています"
     color = '#f39c12'  # オレンジ色
 
-fig.text(0.5, 0.04, study_time_msg, ha='center', fontsize=14, fontweight='bold', color=color, fontproperties=font_prop)
+fig.text(0.5, 0.04, study_time_msg, ha='center', fontsize=14,
+         fontweight='bold', color=color, fontproperties=font_prop)
 
 # 全てのテキスト要素にフォントを適用
 set_font_for_all_texts(fig)
 
 # レイアウト調整とファイル保存
 # 全体の余白を調整
-plt.tight_layout(rect=[0.05, 0.12, 0.95, 0.96])
+plt.tight_layout(rect=(0.05, 0.12, 0.95, 0.96))
 
 try:
     plt.savefig('score_report.png', dpi=300, bbox_inches='tight')
