@@ -90,7 +90,7 @@ python plot_score_report.py
 
 - 標準では日本語対応フォント **BIZ UDGothic** を使用しています。
 - サーバー環境やフォントがない場合、自動的に類似の日本語フォント（Meiryo, Yu Gothicなど）にフォールバックします。
-- フォントパスは以下で指定可能です：
+- フォントパスは以下で指定可能です。
 
 ```python
 font_path = "/workspace/fonts/BIZUDGothic-Regular.ttf"
